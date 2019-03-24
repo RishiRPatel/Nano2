@@ -1,0 +1,101 @@
+filename = 'notstressed.txt';
+delimiterIn = ' ';
+headerlinesIn = 1;
+A = importdata(filename,delimiterIn,headerlinesIn);
+NS=A.data;
+filename = 'stressed.txt';
+delimiterIn = ' ';
+headerlinesIn = 1;
+B = importdata(filename,delimiterIn,headerlinesIn);
+S=B.data;
+W = cat(1,NS,S);
+hr=[];
+se=[];
+sp=[];
+pp=[];
+np=[];
+mean_hr=[];
+mean_se=[];
+mean_sp=[];
+mean_pp=[];
+mean_np=[];
+for v = 200:1:399
+W(v,3)=1;
+end;
+for i = 1:1:349
+    if i < 175 
+    tr(i,1)=W(i,1);
+    tr(i,2)=W(i,2);
+    tr(i,3)=0;
+    else
+    tr(i,1)=W(i+25,1);
+    tr(i,2)=W(i+25,2);
+    tr(i,3)=1;
+    end;
+end;  
+for i = 1:1:399
+    if i>=175 && i<=199
+    ts(i-174,1)=W(i,1);
+    ts(i-174,2)=W(i,2);
+    ts(i-174,3)=0;
+    end;
+    if 375<=i && i<=399 
+    ts(i-349,1)=W(i,1);
+    ts(i-349,2)=W(i,2);
+    ts(i-349,3)=1;
+    end;
+end;
+ 
+for j = 1:1:50
+for i = 1:1:349
+EU=sqrt((tr(i,2)-ts(j,2))^2+(tr(i,1)-ts(j,1))^2);
+EUD(i,1)=EU;
+if i>174
+    EUD(i,2)=1;
+end;
+end;
+q = sortrows(EUD);
+C = 0;
+for t = 1:1:20
+C = C + q(t,2);
+if C > 10
+    ts(j,4)=1;
+else
+    ts(j,4)=0;
+end;
+end;
+end;    
+    true_positive_t=0;
+    false_positive_t=0;
+    true_negative_t=0;
+    false_negative_t=0;
+    for e = 1:1:50
+    if ts(e,3)==1  && ts(e,4)==1
+        true_positive_t=true_positive_t+1;
+    end;
+    if ts(e,3)==0  && ts(e,4)==1
+        false_positive_t=false_positive_t+1;
+    end;
+    if ts(e,3)==0 && ts(e,4)==0
+        true_negative_t=true_negative_t+1;
+    end;
+    if ts(e,3)==1 && ts(e,4)==0
+        false_negative_t=false_negative_t+1;
+    end;
+    end;
+ 
+hitrate_t=(true_positive_t+true_negative_t)/79;
+hr(end+1)=hitrate_t;
+sensitivity_t=true_positive_t/(true_positive_t+false_negative_t);
+se(end+1)=sensitivity_t;
+specificity_t=true_negative_t/(true_negative_t+false_positive_t);
+sp(end+1)=specificity_t;
+ppv_t=true_positive_t/(true_positive_t+false_positive_t);
+pp(end+1)=ppv_t;
+npv_t=true_negative_t/(true_negative_t+false_negative_t);
+np(end+1)=npv_t;
+q ={'HIT RATE';'SENSITIVITY';'SPECIFICITY';'POSITIVE PREDICTED VALUE';'NEGATIVE PREDICTED VALUE'};
+bg=[hitrate_t, sensitivity_t, specificity_t, ppv_t, npv_t];
+ 
+bar(bg)
+set(gca,'xticklabel',q)
